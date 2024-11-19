@@ -10,7 +10,7 @@ To start the server run the following line in the command prompt:
 
 **python server.py [port]**
 
-where [port] is the port that clients will connect through
+where [port] is the port that clients will connect through.
 
 ### Client
 
@@ -18,12 +18,12 @@ To start the client run the following line in the command prompt:
 
 **python client.py [username] [hostname] [port]**
 
-for example python client.py Lara 127.0.0.1 10000 would allow a client using the username "Lara" to connect to '127.0.0.1' (the local host) via port number 10000
+for example python client.py Lara 127.0.0.1 10000 would allow a client using the username "Lara" to connect to '127.0.0.1' (the local host) via port number 10000.
 
 
 ## Commands
 
-In the client program there are a few basic commands that allow the clients to interact in different ways
+In the client program there are a few basic commands that allow the clients to interact in different ways.
 
 ### \<all>
 

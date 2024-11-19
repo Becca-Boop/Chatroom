@@ -21,8 +21,6 @@ clients = []
 
 def new_client(client, client_username, client_address):
     print('Attempted connection from unknown client username {}\n'.format(client_username))
-    data = 'Welcome {}!\n'.format(client_username)
-    broadcast(data.encode('ascii'))
     newUser = Client(client, client_username, client_address)
     clients.append(newUser)
 
@@ -42,16 +40,25 @@ def handle(client, client_username):
                 client.close()
                 sent = True
             elif '<all>' in data:
-                message = '\n {}>>{}\n'.format(client_username, data.replace('<all>', '')).encode('ascii')
+                message = '\n{}>>{}\n'.format(client_username, data.replace('<all>', '')).encode('ascii')
                 broadcast(message)
+                sent = True
+            elif '<list>' in data: # doesn't work yet
+                message = 'Clients Connected:\n'
+                print(message)
+                print(len(clients))
+                for c in clients:
+                    message += '{}\n'.format(c.client_username)
+                print(message)
+                direct(message, client)
                 sent = True
             for c in clients:
                 if data.find('<To {}>'.format(c.client_username)) != -1:
-                    message = '\n {} {}\n'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>>>')).encode('ascii')
+                    message = '\n{} {}\n'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>>>')).encode('ascii')
                     direct(message, c.client_sock)
                     sent = True
             if sent == False:
-                message = '\n {}>> {}\n'.format(client_username, data).encode('ascii')
+                message = '\n{}>> {}\n'.format(client_username, data).encode('ascii')
                 broadcast(message)
                 sent = True
         except:
@@ -73,6 +80,7 @@ def receive():
             print("Client did not send a username")
             client.close()
             break
+
         if len(clients) == 0:
             new_client(client, client_username, client_address)
         else:
@@ -89,9 +97,10 @@ def receive():
                     NotAuthorised = False
                 j+=1
 
-        print("Nickname is {}".format(client_username))
+        print("Username is {}".format(client_username))
         broadcast("{} has joined the chat!".format(client_username).encode('ascii'))
-        client.send('Connected to server!'.encode('ascii'))
+        data = 'Welcome {}!\n'.format(client_username)
+        direct(data.encode('ascii'), client)
 
         thread = threading.Thread(target=handle, args=(client, client_username))
         thread.start()

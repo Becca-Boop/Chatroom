@@ -25,9 +25,9 @@ for example python client.py Lara 127.0.0.1 10000 would allow a client using the
 
 In the client program there are a few basic commands that allow the clients to interact in different ways
 
-### <all>
+### \<all>
 
-typing <all> in a message will broadcast the message to all clients. However, if there is no command in the message, the message will also send to all clients.
+typing \<all> in a message will broadcast the message to all clients. However, if there is no command in the message, the message will also send to all clients.
 
 ### <To [client]>
 

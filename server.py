@@ -3,10 +3,10 @@ import threading
 import sys
 
 host = '127.0.0.1'
-port = 10000
+port = sys.argv[1]
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((host,port))
+server.bind((host, int(port)))
 server.listen()
 
 class Client:
@@ -37,23 +37,21 @@ def handle(client, client_username):
     while True:
         try:
             data = client.recv(1024).decode('ascii')
-            print(data)
             sent = False
             if '<exit>' in data:
                 client.close()
                 sent = True
             elif '<all>' in data:
-                message = '\n {}>>{}'.format(client_username, data.replace('<all>', '')).encode('ascii')
+                message = '\n {}>>{}\n'.format(client_username, data.replace('<all>', '')).encode('ascii')
                 broadcast(message)
                 sent = True
             for c in clients:
                 if data.find('<To {}>'.format(c.client_username)) != -1:
-                    message = '\n {} {}'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>>>')).encode('ascii')
-                    print(message)
+                    message = '\n {} {}\n'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>>>')).encode('ascii')
                     direct(message, c.client_sock)
                     sent = True
             if sent == False:
-                message = '\n {}>> {}'.format(client_username, data).encode('ascii')
+                message = '\n {}>> {}\n'.format(client_username, data).encode('ascii')
                 broadcast(message)
                 sent = True
         except:
@@ -87,7 +85,6 @@ def receive():
                         NotAuthorised = False
                         break
                 if j >= len(clients):
-                    print("here")
                     new_client(client, client_username, client_address)
                     NotAuthorised = False
                 j+=1

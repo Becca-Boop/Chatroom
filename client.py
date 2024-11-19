@@ -1,17 +1,21 @@
 import socket
+import sys
 import threading
 
-nickname = input("Choose your nickname: ")
+hostname = sys.argv[2]
+port = sys.argv[3]
+
+username = sys.argv[1]
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('127.0.0.1', 10000))
+client.connect((hostname, int(port)))
 
 def receive():
     while True:
         try:
             message = client.recv(1024).decode('ascii')
             if message == 'NICK':
-                client.send(nickname.encode('ascii'))
+                client.send(username.encode('ascii'))
             else:
                 print(message)
         except:
@@ -21,8 +25,9 @@ def receive():
 
 def write():
     while True:
-        message = input('>> {}: '.format(nickname))
+        message = input('>> {}: '.format(username))
         client.send(message.encode('ascii'))
+
 
 receive_thread = threading.Thread(target=receive)
 receive_thread.start()

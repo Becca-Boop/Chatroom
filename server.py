@@ -1,5 +1,6 @@
 import socket
 import threading
+import sys
 
 host = '127.0.0.1'
 port = 10000
@@ -17,8 +18,6 @@ class Client:
         self.client_address = client_address
 
 clients = []
-
-
 
 def new_client(client, client_username, client_address):
     print('Attempted connection from unknown client username {}\n'.format(client_username))
@@ -43,17 +42,20 @@ def handle(client, client_username):
             if '<exit>' in data:
                 client.close()
                 sent = True
+            elif '<all>' in data:
+                message = '\n {}>>{}'.format(client_username, data.replace('<all>', '')).encode('ascii')
+                broadcast(message)
+                sent = True
             for c in clients:
                 if data.find('<To {}>'.format(c.client_username)) != -1:
-                    #print(data.replace('<To {}>'.format(c.client_username), '<DM>'))
-                    #print(data)
-                    message = '\n {} {}'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM> >>')).encode('ascii')
+                    message = '\n {} {}'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>>>')).encode('ascii')
                     print(message)
                     direct(message, c.client_sock)
                     sent = True
             if sent == False:
-                message = '\n {} >> {}'.format(client_username, data).encode('ascii')
+                message = '\n {}>> {}'.format(client_username, data).encode('ascii')
                 broadcast(message)
+                sent = True
         except:
             for c in clients:
                 if c.client_username == client_username:

@@ -32,3 +32,12 @@ typing \<all> in a message will broadcast the message to all clients. However, i
 ### <To [client]>
 
 <To [client]> where [client] is the username of another connected user will send the message to just the one client specified.
+
+### <access>
+
+Requests access to the server's shared files.
+This command must be ran before a client can download files from the server.
+
+### <file [FileName]>
+
+This command will download the file [FileName] from the server.

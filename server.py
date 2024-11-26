@@ -26,9 +26,10 @@ def new_client(client, client_username, client_address):
     newUser = Client(client, client_username, client_address)
     clients.append(newUser)
 
-def broadcast(message):
+def broadcast(message, client_username):
     for client in clients:
-        client.client_sock.send(message)
+        if client.client_username != client_username:
+            client.client_sock.send(message)
 
 def direct(message, c):
     c.send(message)
@@ -36,7 +37,7 @@ def direct(message, c):
 def file_send(c, file_path):
     try:
         with open(file_path, 'rb') as file:
-            file_data = file.read()
+            file_data = file.read()            
             message_length = 'len: {}'.format(len(file_data))
             c.sendall(message_length.encode())
             c.sendall(file_data)
@@ -44,19 +45,19 @@ def file_send(c, file_path):
     except FileNotFoundError:
         print("Error: File not found")
         message = 'File not found'
-        c.sendall(message.encode('ascii'))
+        c.sendall(message.encode())
 
 def handle(client, client_username):
     while True:
         try:
-            data = client.recv(1024).decode('ascii')
+            data = client.recv(1024).decode()
             sent = False
             if '<exit>' in data:
                 client.close()
                 sent = True
             elif '<all>' in data:
-                message = '\n{}>>{}\n'.format(client_username, data.replace('<all>', '')).encode('ascii')
-                broadcast(message)
+                message = '\n{}>>{}\n'.format(client_username, data.replace('<all>', '')).encode()
+                broadcast(message, client_username)
                 sent = True
             elif '<list>' in data: # doesn't work yet
                 message = 'Clients Connected:\n'
@@ -73,10 +74,21 @@ def handle(client, client_username):
                     SharedFiles = '{}/SharedFiles'.format(cwd)
                 SharedFileDir = os.listdir('{}/SharedFiles'.format(cwd))
                 message = 'successful access, number of files in server: {}'.format(str(len(SharedFileDir)))
+                direct(message.encode(), client)
+                fileslist = 'Files in Shared Files Folder:'
+                for item in SharedFileDir:
+                    fileslist += ' {}'.format(item)
+                direct(fileslist.encode(), client)
                 for c in clients:
                     if c.client_username == client_username:
                         c.server_access = True
-                direct(message.encode('ascii'), client)
+                try:
+                    os.mkdir(client_username)
+                    print('Directory {} created successfully'.format(client_username))
+                except FileExistsError:
+                    print('File already exists')
+                except PermissionError:
+                    print('Permission denied: Unable to create {}'.format(client_username))
                 sent = True
             elif '<file' in data:
                 access = False
@@ -87,29 +99,29 @@ def handle(client, client_username):
                 if access:
                     file_path = data[6:-1]
                     print('{} requested to download {}'.format(client_username, file_path))
-                    message = '<file> {}'.format(file_path).encode('ascii')
+                    message = '<file> {}'.format(file_path).encode()
                     direct(message, client)
                     file_path = '{}/{}'.format(SharedFiles, file_path)
                     file_send(client, file_path)
                 else:
                     message = '{} does not have access to server shared files, request access with <access>'.format(client_username)
-                    direct(message.encode('ascii'), client)
+                    direct(message.encode(), client)
                 sent = True
             for c in clients:
                 if data.find('<To {}>'.format(c.client_username)) != -1:
-                    message = '\n{} {}\n'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>>>')).encode('ascii')
+                    message = '\n{} {}\n'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>')).encode()
                     direct(message, c.client_sock)
                     sent = True
             if sent == False:
-                message = '\n{}>> {}\n'.format(client_username, data).encode('ascii')
-                broadcast(message)
+                message = '\n{}>> {}\n'.format(client_username, data).encode()
+                broadcast(message, client_username)
                 sent = True
         except:
             for c in clients:
                 if c.client_username == client_username:
                     clients.remove(c)
             client.close()
-            broadcast('{} has left the chat!'.format(client_username).encode('ascii'))
+            broadcast('{} has left the chat!'.format(client_username).encode(), client_username)
             break
     
 def receive():
@@ -117,8 +129,8 @@ def receive():
         client, client_address = server.accept()
         print("Connected with {}".format(str(client_address)))
         try:
-            client.send('NICK'.encode('ascii'))
-            client_username = client.recv(1024).decode('ascii')
+            client.send('NICK'.encode())
+            client_username = client.recv(1024).decode()
         except ValueError:
             print("Client did not send a username")
             client.close()
@@ -141,9 +153,9 @@ def receive():
                 j+=1
 
         print("Username is {}".format(client_username))
-        broadcast("{} has joined the chat!".format(client_username).encode('ascii'))
+        broadcast("{} has joined the chat!".format(client_username).encode(), client_username)
         data = 'Welcome {}!\n'.format(client_username)
-        direct(data.encode('ascii'), client)
+        direct(data.encode(), client)
 
         thread = threading.Thread(target=handle, args=(client, client_username))
         thread.start()

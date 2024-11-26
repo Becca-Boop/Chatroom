@@ -27,7 +27,7 @@ In the client program there are a few basic commands that allow the clients to i
 
 ### \<all>
 
-typing \<all> in a message will broadcast the message to all clients. However, if there is no command in the message, the message will also send to all clients.
+Typing \<all> in a message will broadcast the message to all clients. However, if there is no command in the message, the message will also send to all clients.
 
 ### <To [client]>
 
@@ -41,3 +41,7 @@ This command must be ran before a client can download files from the server.
 ### <file [FileName]>
 
 This command will download the file [FileName] from the server.
+
+### <exit>
+
+This command will cause the client to leave the chat

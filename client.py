@@ -8,44 +8,53 @@ port = sys.argv[3]
 username = sys.argv[1]
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((hostname, int(port)))
+try:
+    client.connect((hostname, int(port)))
+except:
+    sys.exit('Error, server at host: {}, port number: {} is unavailable'.format(hostname, port))
 
 def receive_file(message):
     file_name = message[7:]
     file_length = client.recv(1024).decode()
     file_length = int(file_length[5:])
     recv_length = 0
-    file = open(file_name, 'wb')
-    file.close()
-    with open(file_name, 'ab') as file:
+    with open('{}/{}'.format(username, file_name), 'ab') as file:
         while recv_length < file_length:
             file_data = client.recv(1024)
             file.write(file_data)
             recv_length += len(file_data)
         file.close()
-        print("File received successfully")
+        print('File received successfully, file size: {}'.format(file_length))
         
 
 def receive():
     while True:
         try:
-            message = client.recv(1024).decode('ascii')
+            message = client.recv(1024).decode()
             if message == 'NICK':
-                client.send(username.encode('ascii'))
+                client.send(username.encode())
             elif '<file>' in message:
                 receive_file(message)
             else:
                 print(message)
         except:
-            print("An error occured!")
             client.close()
             break
 
 def write():
     while True:
-        #message = input('>> {}: '.format(username))
-        message = input('')
-        client.send(message.encode('ascii'))
+        try:
+            #message = input('>> {}: '.format(username))
+            message = input('')
+            client.send(message.encode())
+            if '<exit>' in message:
+                client.close()
+                sys.exit(0)
+        except:
+            print("An Error Occured")
+            client.close()
+            break
+            
 
 
 receive_thread = threading.Thread(target=receive)

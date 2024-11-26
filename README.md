@@ -42,6 +42,6 @@ This command must be ran before a client can download files from the server.
 
 This command will download the file [FileName] from the server.
 
-### <exit>
+### \<exit>
 
 This command will cause the client to leave the chat

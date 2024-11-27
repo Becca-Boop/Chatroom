@@ -33,6 +33,14 @@ Typing \<all> in a message will broadcast the message to all clients. However, i
 
 <To [client]> where [client] is the username of another connected user will send the message to just the one client specified.
 
+### <help>
+
+lists the commands the user can use
+
+### <list>
+
+Lists the users connected to the server
+
 ### <access>
 
 Requests access to the server's shared files.

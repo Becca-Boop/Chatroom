@@ -24,7 +24,10 @@ def receive_file(message):
             file.write(file_data)
             recv_length += len(file_data)
         file.close()
-        print('File received successfully, file size: {}'.format(file_length))
+        message = 'File received successfully, file size: {}'.format(file_length)
+        print('\r ', message)
+        print('\r>> ', end='')
+
         
 
 def receive():
@@ -36,7 +39,8 @@ def receive():
             elif '<file>' in message:
                 receive_file(message)
             else:
-                print(message)
+                print('\r ', message)
+                print('\r>> ', end='')
         except:
             client.close()
             break
@@ -44,14 +48,15 @@ def receive():
 def write():
     while True:
         try:
-            #message = input('>> {}: '.format(username))
+            print('\r>> ', end='')
             message = input('')
+            print('\n')
             client.send(message.encode())
             if '<exit>' in message:
                 client.close()
+                print("successfully left session")
                 sys.exit(0)
         except:
-            print("An Error Occured")
             client.close()
             break
             

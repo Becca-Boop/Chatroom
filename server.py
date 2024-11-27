@@ -10,6 +10,8 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, int(port)))
 server.listen()
 
+helpmessage = '<all> send message to all users\n<To [user]> send message to single user\n<list> list all connected users\n<access> request access to server shared files\n<file [filename]> download file from server; user must have access\n<exit> leave session'
+
 class Client:
     client_username = ''
     client_address = ''
@@ -60,11 +62,15 @@ def handle(client, client_username):
                 broadcast(message, client_username)
                 sent = True
             elif '<list>' in data: # doesn't work yet
-                message = 'Clients Connected:\n'
+                message = 'Users Connected:\n'
                 for c in clients:
-                    message += '{}\n'.format(c.client_username)
-                direct(message, client)
+                    message += ' {},'.format(c.client_username)
+                message = message[:-1]
+                direct(message.encode(), client)
                 sent = True
+            elif '<help>' in data:
+                message = helpmessage
+                direct(message.encode(), client)
             elif '<access>' in data:
                 print('{} requested access to Server Shared Files'.format(client_username))
                 try:
@@ -154,7 +160,7 @@ def receive():
 
         print("Username is {}".format(client_username))
         broadcast("{} has joined the chat!".format(client_username).encode(), client_username)
-        data = 'Welcome {}!\n'.format(client_username)
+        data = 'Welcome {}!\nUse <help> for more information\n'.format(client_username)
         direct(data.encode(), client)
 
         thread = threading.Thread(target=handle, args=(client, client_username))

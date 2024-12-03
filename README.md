@@ -46,7 +46,7 @@ Lists the users connected to the server
 Requests access to the server's shared files.
 This command must be ran before a client can download files from the server.
 
-### <file [FileName]>
+### <download [FileName]>
 
 This command will download the file [FileName] from the server.
 

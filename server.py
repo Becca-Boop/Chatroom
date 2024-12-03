@@ -10,7 +10,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, int(port)))
 server.listen()
 
-helpmessage = '<all> send message to all users\n<To [user]> send message to single user\n<list> list all connected users\n<access> request access to server shared files\n<file [filename]> download file from server; user must have access\n<exit> leave session'
+helpmessage = '<all> send message to all users\n<To [user]> send message to single user\n<list> list all connected users\n<access> request access to server shared files\n<download [filename]> download file from server; user must have access\n<exit> leave session'
 
 class Client:
     client_username = ''
@@ -61,7 +61,7 @@ def handle(client, client_username):
                 message = '\n{}>>{}\n'.format(client_username, data.replace('<all>', '')).encode()
                 broadcast(message, client_username)
                 sent = True
-            elif '<list>' in data: # doesn't work yet
+            elif '<list>' in data:
                 message = 'Users Connected:\n'
                 for c in clients:
                     message += ' {},'.format(c.client_username)
@@ -73,50 +73,82 @@ def handle(client, client_username):
                 direct(message.encode(), client)
             elif '<access>' in data:
                 print('{} requested access to Server Shared Files'.format(client_username))
-                try:
-                    SharedFiles = os.environ["SERVER_SHARED_FILES"]
-                except:
-                    cwd = os.getcwd()
-                    SharedFiles = '{}/SharedFiles'.format(cwd)
-                SharedFileDir = os.listdir('{}/SharedFiles'.format(cwd))
-                message = 'successful access, number of files in server: {}'.format(str(len(SharedFileDir)))
-                direct(message.encode(), client)
-                fileslist = 'Files in Shared Files Folder:'
-                for item in SharedFileDir:
-                    fileslist += ' {}'.format(item)
-                direct(fileslist.encode(), client)
-                for c in clients:
-                    if c.client_username == client_username:
-                        c.server_access = True
-                try:
-                    os.mkdir(client_username)
-                    print('Directory {} created successfully'.format(client_username))
-                except FileExistsError:
-                    print('File already exists')
-                except PermissionError:
-                    print('Permission denied: Unable to create {}'.format(client_username))
-                sent = True
-            elif '<file' in data:
                 access = False
                 for c in clients:
                     if c.client_username == client_username:
                         if c.server_access == True:
                             access = True
                 if access:
-                    file_path = data[6:-1]
+                    message = '{} already has access to shared files'.format(client_username)
+                    print(message)
+                    direct(message.encode(), client)
+                else:
+
+
+                    # Finding the shared files folder
+                    try:
+                        SharedFiles = os.environ["SERVER_SHARED_FILES"]
+                    except:
+                        cwd = os.getcwd()
+                        SharedFiles = '{}/SharedFiles'.format(cwd)
+                    SharedFileDir = os.listdir('{}/SharedFiles'.format(cwd))
+
+
+                    message = 'successful access, number of files in server: {}'.format(str(len(SharedFileDir)))
+                    direct(message.encode(), client)
+                    fileslist = 'Files in Shared Files Folder:'
+                    for item in SharedFileDir:
+                        fileslist += ' {}'.format(item)
+                    direct(fileslist.encode(), client)
+                    for c in clients:
+                        if c.client_username == client_username:
+                            c.server_access = True
+                    try:
+                        os.mkdir(client_username)
+                        print('Directory {} created successfully'.format(client_username))
+                    except FileExistsError:
+                        print('File already exists')
+                    except PermissionError:
+                        print('Permission denied: Unable to create {}'.format(client_username))
+                sent = True
+            elif '<download' in data:
+                access = False
+                for c in clients:
+                    if c.client_username == client_username:
+                        if c.server_access == True:
+                            access = True
+                if access:
+                    if os.path.exists(client_username):
+                        print('{} folder exists'.format(client_username))
+                    else:
+                        print('{} folder does not exist, creating now'.format(client_username))
+                        os.mkdir(client_username)
+                    file_path = data[10:-1]
                     print('{} requested to download {}'.format(client_username, file_path))
                     message = '<file> {}'.format(file_path).encode()
                     direct(message, client)
                     file_path = '{}/{}'.format(SharedFiles, file_path)
                     file_send(client, file_path)
+                    
                 else:
                     message = '{} does not have access to server shared files, request access with <access>'.format(client_username)
                     direct(message.encode(), client)
                 sent = True
-            for c in clients:
-                if data.find('<To {}>'.format(c.client_username)) != -1:
-                    message = '\n{} {}\n'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>')).encode()
-                    direct(message, c.client_sock)
+            elif '<To' in data:
+                lowerdata = data.lower()
+                for c in clients:
+                    if lowerdata.find('<to {}>'.format(c.client_username.lower())) != -1:
+                        message = '\n{} {}\n'.format(client_username, data.replace('<To {}>'.format(c.client_username), '<DM>')).encode()
+                        direct(message, c.client_sock)
+                        sent = True
+                if (sent == False):
+                    try:
+                        data.split(">")
+                        message = 'client {} not in chat'.format(data[0][4:])
+                        print(message)
+                    except:
+                        message = "Error in command, type <To [user]> to send a message to a single user"
+                    direct(message.encode(), client)
                     sent = True
             if sent == False:
                 message = '\n{}>> {}\n'.format(client_username, data).encode()
@@ -168,5 +200,3 @@ def receive():
 
 print("server is listening")
 receive()
-
-# D:\Bex\1 Uni Work\Year 2\Networks and Systems\Coursework 1\chatroom\

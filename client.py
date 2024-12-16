@@ -1,11 +1,15 @@
 import socket
 import sys
 import threading
+import os
+
 
 hostname = sys.argv[2]
 port = sys.argv[3]
 
 username = sys.argv[1]
+
+access = False
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
@@ -42,6 +46,14 @@ def receive():
             else:
                 print('\r ', message)
                 print('\r>> ', end='')
+            if 'successful access, number of files in server' in message:
+                try:
+                    os.mkdir(username)
+                    print('Directory {} created successfully'.format(username))
+                except FileExistsError:
+                    print('File already exists')
+                except PermissionError:
+                    print('Permission denied: Unable to create {} folder'.format(username))
         except:
             client.close()
             break

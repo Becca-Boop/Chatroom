@@ -103,13 +103,13 @@ def handle(client, client_username):
                     for c in clients:
                         if c.client_username == client_username:
                             c.server_access = True
-                    try:
-                        os.mkdir(client_username)
-                        print('Directory {} created successfully'.format(client_username))
-                    except FileExistsError:
-                        print('File already exists')
-                    except PermissionError:
-                        print('Permission denied: Unable to create {}'.format(client_username))
+                    # try:
+                    #     os.mkdir(client_username)
+                    #     print('Directory {} created successfully'.format(client_username))
+                    # except FileExistsError:
+                    #     print('File already exists')
+                    # except PermissionError:
+                    #     print('Permission denied: Unable to create {}'.format(client_username))
                 sent = True
             elif '<download' in data:
                 access = False
